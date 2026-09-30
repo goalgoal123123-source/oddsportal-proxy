@@ -2,6 +2,7 @@
 // Deploy on Render Singapore so browsing oddsportal.com exits via a Singapore IP,
 // which shows the most bookmakers (vs US IP which shows very few).
 const http = require("http");
+const https = require("https");
 const net = require("net");
 const crypto = require("crypto");
 
@@ -57,6 +58,24 @@ const server = http.createServer((req, res) => {
   if (req.url === "/health" || req.url === "/") {
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("ok");
+    return;
+  }
+  // Self-check: which IP does this proxy exit from? (auth required)
+  if (req.url === "/egress-ip") {
+    if (!checkAuth(req)) return needAuth(res);
+    https
+      .get("https://api.ipify.org?format=json", { timeout: 10000 }, (up) => {
+        let body = "";
+        up.on("data", (c) => (body += c));
+        up.on("end", () => {
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(body);
+        });
+      })
+      .on("error", () => {
+        res.writeHead(502, { "Content-Type": "text/plain" });
+        res.end("egress check failed");
+      });
     return;
   }
   if (!checkAuth(req)) return needAuth(res);
