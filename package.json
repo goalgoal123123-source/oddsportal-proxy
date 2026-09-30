@@ -1,0 +1,1 @@
+{"description":"Minimal authenticated forward proxy, allowlisted to oddsportal.com (Singapore egress)","license":"MIT","main":"server.js","name":"oddsportal-proxy","scripts":{"start":"node server.js"},"version":"1.0.0"}
